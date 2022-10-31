@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2022-10-31T07:21:21.714Z</updated>
+  <updated>2022-10-31T13:09:47.013Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -17,12 +17,19 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>进阶保护模式</title>
+    <title>保护模式入门</title>
     <link href="http://example.com/2022/10/29/%E8%BF%9B%E9%98%B6%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/"/>
     <id>http://example.com/2022/10/29/%E8%BF%9B%E9%98%B6%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/</id>
     <published>2022-10-29T09:07:41.000Z</published>
-    <updated>2022-10-31T07:21:21.714Z</updated>
+    <updated>2022-10-31T13:09:47.013Z</updated>
     
+    <content type="html"><![CDATA[<h2 id="保护模式"><a href="#保护模式" class="headerlink" title="保护模式"></a>保护模式</h2><p><strong>在16位cpu天下时，并没有实模式的概念，但是随着cpu发展到了32位，寄存器，总线等许多硬件设备得到了更新换代，随之而来的就是cpu新的运行模式，但新出的cpu必须兼容以前老版本的16位的运行模式，所以才有了保护模式和实模式之分。</strong></p><h3 id="GDT"><a href="#GDT" class="headerlink" title="GDT"></a>GDT</h3><p>到了保护模式下，内存段（如数据段、代码段等）不再是简单地用段寄存器加载一下段基址就能用，信息增加了很多，需要提前把段定义好才能使用。全局描述符表（Global Descriptor Table，GDT）是保护模式下内存段的登记表，寄存器GDTR负责指向它。</p><p>顾名思义，GDT是一个表，表中必然有表项，每一个表项大小为8个字，称作段描述符，用来描述各个内存段的起始地址、大小、权限等信息，可谓是相当详细。与之对应的，段寄存器也发生了变化，里面保存的不再是段地址，而是‘选择子’，selector，选择子用于索引GDT中的段描述符，看起来就像个数组下标一样。也正是因为段寄存器不再指向物理上的段地址，所以段寄存器中的地址没必要再左移四位硬凑20位的地址，一个32位的寄存器寻址范围是0x00000000<del>0xFFFFFFFF，即0</del>4GB，这样高效的寻址模式，称为平坦模式。</p><h3 id="段描述符"><a href="#段描述符" class="headerlink" title="段描述符"></a>段描述符</h3><p>在保护模式模式下，段描述符是放在内存之中，占8个字大小，一共64位，每一位都有其特殊意义</p><p><img src="https://s2.loli.net/2022/10/31/TZb6IMvn5rfitgC.png" alt="image.png"></p><ul><li>段基址：用于指向访问内存的起始地址</li><li>G：用于表示段界限的粒度大小，0表示粒度大小为1KB，1表示粒度大小为4GB</li><li>段界限：限制程序访问的范围，但这里的段界限只是一个单位，真正的段界限=G（粒度）*（段界限+1）-1。段界限存在两种拓展方向，向高地址拓展或向低地址拓展。</li><li>S：用来指定描述符的类型，0表示系统段，1表示非系统段，非系统段同样分为两种：代码段和数据段</li><li>TYPE：TYPE一共有四位，用于指定这段非系统段的相关权限<ul><li>X：EXecutable，表示该段是否可执行，数据和指令都是以同等地位存储在内存之中，但是指令可以执行但数据不能执行，所以可以用于区分代码段和数据段。代码段是可执行的，即 X 为 1。而数据段是不可执行的，即 X 为 0</li><li>R：Read，表示可读，R 为 1 表示可读，R 为 0 表示不可读</li><li>W：Write，表示可写，R 为 1 表示可写，R 为 0 表示不可写</li><li>C：Conforming，表示是否一致，一致性代码段是指如果自己是转移的目标段，并且自己是一致性代码段，自己的特权级一定要高于当前特权级，转移后的特权级不与自己的 DPL 为主，而是与转移前的低特权级一致，也就是听从、依从转移前的低特权级。C 为 1 时则表示该段是一致性代码段，C 为 0 时则表示该段为非一致性代码段</li><li>A：Accessed，表示是否执行，由 CPU 设置，每当该段被 CPU 访问过后，CPU 就将此位置 1。</li><li>E：Extend，E 为 0 表示向上扩展，即地址越来越高，通常用于代码段和数据段。E 为 1 表示向下扩展，地址越来越低，通常用于栈段。</li></ul></li></ul><p><img src="https://s2.loli.net/2022/10/31/xTG23XNEmSF1Ljg.png" alt="image.png"></p><ul><li>DPL：表示描述符特权级，这两位能表示 4 种特权级，分别是 0、1、2、3 级特权，数字越小，特权级越大。特权级是保护模式下才有的东西，CPU 由实模式进入保护模式后，特权级自动为 0，用户程序通常处于 3 特权级，权限最小。某些指令只能在 0 特权级下执行，从而保证了安全。</li><li>P：表示段是否存在，如果段存在于内存中，P 为 1，否则 P 为 0。P 字段是由 CPU 来检查的，如果为 0，CPU 将抛出异常，转到相应的异常处理程序。当初 CPU 的设计是当内存不足时，可以将段描述符中对应的内存段换出，也就是可以把不常用的段直接换出到硬盘，待使用时再加载进来。</li><li>AVL：操作系统可以随意用此位</li><li>L：用来设置是否是 64 位代码段。L 为 1 表示 64 位代码段，否则表示 32位代码段</li><li>D/B：有效表示地址（段内偏移地址）及操作数的大小。对于代码段来说，此位是 D 位，若 D 为 0，表示指令中的有效地址和操作数是 16 位，指令有效地址用 IP 寄存器。若 D 为 1，表示指令中的有效地址及操作数是 32 位，指令有效地址用 EIP 寄存器。对于栈段来说，此位是 B 位，用来指定操作数大小，此操作数涉及到栈指针寄存器的选择及栈的地址上限。若 B 为 0，使用的是 sp 寄存器，也就是栈的起始地址是 16 位寄存器的最大寻址范围，0xFFFF。若 B 为 1，使用的是 esp 寄存器，也就是栈的起始地址是 32 位寄存器的最大寻址范围，0xFFFFFFFF。</li></ul>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;保护模式&quot;&gt;&lt;a href=&quot;#保护模式&quot; class=&quot;headerlink&quot; title=&quot;保护模式&quot;&gt;&lt;/a&gt;保护模式&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;在16位cpu天下时，并没有实模式的概念，但是随着cpu发展到了32位，寄存器，总线等许多硬件设备得到了更新</summary>
+      
     
     
     
@@ -36,7 +43,7 @@
     <link href="http://example.com/2022/10/29/hello-world/"/>
     <id>http://example.com/2022/10/29/hello-world/</id>
     <published>2022-10-29T06:00:51.624Z</published>
-    <updated>2022-10-29T05:59:56.474Z</updated>
+    <updated>2022-10-31T11:41:19.593Z</updated>
     
     <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>]]></content>
     
