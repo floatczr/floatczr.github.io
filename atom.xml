@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>就当是写点东西吧</title>
+  <title>floatc.rar</title>
   
-  
+  <subtitle>finally</subtitle>
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2022-10-29T05:59:56.474Z</updated>
+  <updated>2022-10-31T07:21:21.714Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,21 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>进阶保护模式</title>
+    <link href="http://example.com/2022/10/29/%E8%BF%9B%E9%98%B6%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/"/>
+    <id>http://example.com/2022/10/29/%E8%BF%9B%E9%98%B6%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/</id>
+    <published>2022-10-29T09:07:41.000Z</published>
+    <updated>2022-10-31T07:21:21.714Z</updated>
+    
+    
+    
+    
+    
+    <category term="操作系统真相还原" scheme="http://example.com/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9C%9F%E7%9B%B8%E8%BF%98%E5%8E%9F/"/>
+    
+  </entry>
   
   <entry>
     <title>Hello World</title>
