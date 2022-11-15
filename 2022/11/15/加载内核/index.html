@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="ch" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>加载内核 | floatc.rar</title><meta name="author" content="fLo4Tc"><meta name="copyright" content="fLo4Tc"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="加载内核_start函数一个没有包含头文件的c程序 1234int main()&amp;#123;    while (1);    return 0;&amp;#125;  利用gcc -c -o kernel&#x2F;main.o kernel&#x2F;main.c编译获得mian.o文件，这里的main文件实际上是一个半成品，并不是直接打开就能运行的可执行文件，使用命令file main.o也可以看出这是个重定向文件，此">
+<meta property="og:type" content="article">
+<meta property="og:title" content="加载内核">
+<meta property="og:url" content="http://example.com/2022/11/15/%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8/index.html">
+<meta property="og:site_name" content="floatc.rar">
+<meta property="og:description" content="加载内核_start函数一个没有包含头文件的c程序 1234int main()&amp;#123;    while (1);    return 0;&amp;#125;  利用gcc -c -o kernel&#x2F;main.o kernel&#x2F;main.c编译获得mian.o文件，这里的main文件实际上是一个半成品，并不是直接打开就能运行的可执行文件，使用命令file main.o也可以看出这是个重定向文件，此">
+<meta property="og:locale">
+<meta property="og:image" content="https://s2.loli.net/2022/11/15/Rrml8cCBtyUjuAf.png#">
+<meta property="article:published_time" content="2022-11-15T07:40:05.000Z">
+<meta property="article:modified_time" content="2022-11-15T10:15:15.263Z">
+<meta property="article:author" content="fLo4Tc">
+<meta property="article:tag" content="操作系统真相还原">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2022/11/15/Rrml8cCBtyUjuAf.png#"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/11/15/%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: 'Copy successfully',
+    error: 'Copy error',
+    noSupport: 'The browser does not support'
+  },
+  relativeDate: {
+    homepage: true,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: 'Just',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '加载内核',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-11-15 18:15:15'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.2"><link rel="alternate" href="/atom.xml" title="floatc.rar" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://s2.loli.net/2022/10/31/YCmjBOJQUDPzeLE.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">0</div></a></div><hr/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://s2.loli.net/2022/11/15/Rrml8cCBtyUjuAf.png#')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">floatc.rar</a></span><div id="menus"><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">加载内核</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2022-11-15T07:40:05.000Z" title="Created 2022-11-15 15:40:05">2022-11-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2022-11-15T10:15:15.263Z" title="Updated 2022-11-15 18:15:15">2022-11-15</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="加载内核"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post View:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="加载内核"><a href="#加载内核" class="headerlink" title="加载内核"></a>加载内核</h2><h3 id="start函数"><a href="#start函数" class="headerlink" title="_start函数"></a>_start函数</h3><p>一个没有包含头文件的c程序</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>利用<code>gcc -c -o kernel/main.o kernel/main.c</code>编译获得mian.o文件，这里的main文件实际上是一个半成品，并不是直接打开就能运行的可执行文件，使用命令<code>file main.o</code>也可以看出这是个重定向文件，此时变量、地址和函数名等都还未确定</p>
+<p><img src="https://s2.loli.net/2022/11/15/yRP2Fqz1Ud9S4AY.png" alt="image.png"></p>
+<p><code>ld main.o -Ttext 0xc0001500 -o kernel.bin</code>将文件链接，组成真正的可执行文件，但是这里报了个warning缺少_start，默认地址为00000000c0001500</p>
+<p><img src="https://s2.loli.net/2022/11/15/iX8Lr6IAeZQ5KWP.png" alt="image.png"></p>
+<p>一个程序需要一个入口地址来表示程序从哪里开始执行，这里的入口程序并不是指平时常见的main函数，也不是程序中第一个字节的起始地址，在一个文件的开头往往会定义相当多的数据（就像之前的loader.S），而是一个名为**_start**的函数，编译器默认将 _start函数所在的地址作为入口地址，在上面中就缺少 _start函数，将main函数名改为 _start即可完成编译</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> _start()&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/11/15/E2Zspo4znWILfgJ.png" alt="image.png"></p>
+<p>在平时利用gcc编译时，我们并没有这么麻烦，直接使用<code>gcc -o</code>的指令就能成功编译出对应的可执行文件。直接编译出的文件和经过链接的文件有着些许不同</p>
+<p>这里分别利用两种方法将相同的源程序编译为kernel.bin和test，使用<code>nm</code>命令查看其中的符号</p>
+<p>kernel.bin：</p>
+<p><img src="https://s2.loli.net/2022/11/15/wRoOaYesDBu4Z3P.png" alt="image.png"></p>
+<p>test：这里只截了一部分</p>
+<p><img src="https://s2.loli.net/2022/11/15/2bEgwsNke7It56K.png" alt="image.png"></p>
+<p>从大小上也可看出两者不同，通过手动编译、链接所生成的可执行文件比直接编译生成的可执行文件也要小得多，且自动编译的文件中自动包含了_start函数</p>
+<p><img src="https://s2.loli.net/2022/11/15/1EYDApHo7nrXlBk.png" alt="image.png"></p>
+<h3 id="头文件"><a href="#头文件" class="headerlink" title="头文件"></a>头文件</h3><p>操作系统也是程序的一种，它经过mbr和loader加载到内存之中才能够执行对应的任务。其他的一般程序也一样，必须先加载到内存之中才能执行其中的指令，这些程序的mbr和loader就是操作系统，是操作系统将它们井然有序的调入到内存之中运行，但是想要运行一个程序只有知道对应程序的入口地址才能调用。在操作系统之中直接写死了程序的入口地址，但是一般的程序是动态的，为了方便加载它们，需要在程序文件之中专门腾出个空间来写入这些程序的入口地址，主调程序在该程序文件的相应空间中将该程序的入口信息读出来，将其加载到相应的入口地址，跳转过去就行了，当然不仅仅只写入程序入口地址，能写的东西很多，比如为了给程序分配内存，至少还得需要知道程序的尺寸大小。但在哪里写入程序的入口地址呢？这便是文件头的由来，在程序文件的开头部分记载这类信息，而程序文件中除文件头外其余的部分则是之前的程序体。</p>
+<p><img src="https://s2.loli.net/2022/11/15/kIpEwdRCYXnhrPs.png" alt="image.png"></p>
+<p>因为文件头之中存放的并不是代码，所以程序不再是纯粹的可执行文件，所以需要从头文件中读出程序的入口地址，进而直接跳到程序入口地址所在位置执行即可。程序头可以自定义，只要我们按照自己定义的格式去解析就行。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">Author: </span><span class="post-copyright-info"><a href="http://example.com">fLo4Tc</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">Link: </span><span class="post-copyright-info"><a href="http://example.com/2022/11/15/%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8/">http://example.com/2022/11/15/%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9C%9F%E7%9B%B8%E8%BF%98%E5%8E%9F/">操作系统真相还原</a></div><div class="post_share"><div class="social-share" data-image="https://s2.loli.net/2022/11/15/Rrml8cCBtyUjuAf.png#" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/11/03/%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E8%BF%9B%E9%98%B6/"><img class="next-cover" src="https://s2.loli.net/2022/11/14/wtFZ6YRfq9Cp1BT.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">Next Post</div><div class="next_info">保护模式进阶</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>Related Articles</span></div><div class="relatedPosts-list"><div><a href="/2022/11/03/%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E8%BF%9B%E9%98%B6/" title="保护模式进阶"><img class="cover" src="https://s2.loli.net/2022/11/14/wtFZ6YRfq9Cp1BT.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-11-03</div><div class="title">保护模式进阶</div></div></a></div><div><a href="/2022/10/29/%E5%88%9D%E5%85%A5%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" title="保护模式入门"><img class="cover" src="https://s2.loli.net/2022/10/31/vypDPWC2Fz7dOaI.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-10-29</div><div class="title">保护模式入门</div></div></a></div></div></div><hr/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> Comment</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://s2.loli.net/2022/10/31/YCmjBOJQUDPzeLE.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fLo4Tc</div><div class="author-info__description">就当是写点东西吧</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/floatczr"><i class="fab fa-github"></i><span>empty profile</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/floatczr" target="_blank" title="Github"><i class="fab fa-github"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Catalog</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8"><span class="toc-number">1.</span> <span class="toc-text">加载内核</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#start%E5%87%BD%E6%95%B0"><span class="toc-number">1.1.</span> <span class="toc-text">_start函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%B4%E6%96%87%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">头文件</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/11/15/%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8/" title="加载内核"><img src="https://s2.loli.net/2022/11/15/Rrml8cCBtyUjuAf.png#" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="加载内核"/></a><div class="content"><a class="title" href="/2022/11/15/%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8/" title="加载内核">加载内核</a><time datetime="2022-11-15T07:40:05.000Z" title="Created 2022-11-15 15:40:05">2022-11-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/11/03/%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E8%BF%9B%E9%98%B6/" title="保护模式进阶"><img src="https://s2.loli.net/2022/11/14/wtFZ6YRfq9Cp1BT.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="保护模式进阶"/></a><div class="content"><a class="title" href="/2022/11/03/%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E8%BF%9B%E9%98%B6/" title="保护模式进阶">保护模式进阶</a><time datetime="2022-11-03T07:20:39.000Z" title="Created 2022-11-03 15:20:39">2022-11-03</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/10/29/%E5%88%9D%E5%85%A5%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" title="保护模式入门"><img src="https://s2.loli.net/2022/10/31/vypDPWC2Fz7dOaI.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="保护模式入门"/></a><div class="content"><a class="title" href="/2022/10/29/%E5%88%9D%E5%85%A5%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F/" title="保护模式入门">保护模式入门</a><time datetime="2022-10-29T09:07:41.000Z" title="Created 2022-10-29 17:07:41">2022-10-29</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('https://s2.loli.net/2022/11/15/Rrml8cCBtyUjuAf.png#')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By fLo4Tc</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between single-column and double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="Scroll To Comments"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="Back To Top"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      path: window.location.pathname,
+      visitor: false
+    }, null))
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Valine' === 'Valine' || !false) {
+  if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = false;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="1,0" data-fontsize="10px" data-random="false" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -6,7 +6,7 @@
   <link href="http://example.com/atom.xml" rel="self"/>
   
   <link href="http://example.com/"/>
-  <updated>2022-11-14T11:09:48.763Z</updated>
+  <updated>2022-11-15T10:15:15.263Z</updated>
   <id>http://example.com/</id>
   
   <author>
@@ -15,6 +15,28 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>加载内核</title>
+    <link href="http://example.com/2022/11/15/%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8/"/>
+    <id>http://example.com/2022/11/15/%E5%8A%A0%E8%BD%BD%E5%86%85%E6%A0%B8/</id>
+    <published>2022-11-15T07:40:05.000Z</published>
+    <updated>2022-11-15T10:15:15.263Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="加载内核"><a href="#加载内核" class="headerlink" title="加载内核"></a>加载内核</h2><h3 id="start函数"><a href="#start函数" class="headerlink" title="_start函数"></a>_start函数</h3><p>一个没有包含头文件的c程序</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>利用<code>gcc -c -o kernel/main.o kernel/main.c</code>编译获得mian.o文件，这里的main文件实际上是一个半成品，并不是直接打开就能运行的可执行文件，使用命令<code>file main.o</code>也可以看出这是个重定向文件，此时变量、地址和函数名等都还未确定</p><p><img src="https://s2.loli.net/2022/11/15/yRP2Fqz1Ud9S4AY.png" alt="image.png"></p><p><code>ld main.o -Ttext 0xc0001500 -o kernel.bin</code>将文件链接，组成真正的可执行文件，但是这里报了个warning缺少_start，默认地址为00000000c0001500</p><p><img src="https://s2.loli.net/2022/11/15/iX8Lr6IAeZQ5KWP.png" alt="image.png"></p><p>一个程序需要一个入口地址来表示程序从哪里开始执行，这里的入口程序并不是指平时常见的main函数，也不是程序中第一个字节的起始地址，在一个文件的开头往往会定义相当多的数据（就像之前的loader.S），而是一个名为**_start**的函数，编译器默认将 _start函数所在的地址作为入口地址，在上面中就缺少 _start函数，将main函数名改为 _start即可完成编译</p><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> _start()&#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p><img src="https://s2.loli.net/2022/11/15/E2Zspo4znWILfgJ.png" alt="image.png"></p><p>在平时利用gcc编译时，我们并没有这么麻烦，直接使用<code>gcc -o</code>的指令就能成功编译出对应的可执行文件。直接编译出的文件和经过链接的文件有着些许不同</p><p>这里分别利用两种方法将相同的源程序编译为kernel.bin和test，使用<code>nm</code>命令查看其中的符号</p><p>kernel.bin：</p><p><img src="https://s2.loli.net/2022/11/15/wRoOaYesDBu4Z3P.png" alt="image.png"></p><p>test：这里只截了一部分</p><p><img src="https://s2.loli.net/2022/11/15/2bEgwsNke7It56K.png" alt="image.png"></p><p>从大小上也可看出两者不同，通过手动编译、链接所生成的可执行文件比直接编译生成的可执行文件也要小得多，且自动编译的文件中自动包含了_start函数</p><p><img src="https://s2.loli.net/2022/11/15/1EYDApHo7nrXlBk.png" alt="image.png"></p><h3 id="头文件"><a href="#头文件" class="headerlink" title="头文件"></a>头文件</h3><p>操作系统也是程序的一种，它经过mbr和loader加载到内存之中才能够执行对应的任务。其他的一般程序也一样，必须先加载到内存之中才能执行其中的指令，这些程序的mbr和loader就是操作系统，是操作系统将它们井然有序的调入到内存之中运行，但是想要运行一个程序只有知道对应程序的入口地址才能调用。在操作系统之中直接写死了程序的入口地址，但是一般的程序是动态的，为了方便加载它们，需要在程序文件之中专门腾出个空间来写入这些程序的入口地址，主调程序在该程序文件的相应空间中将该程序的入口信息读出来，将其加载到相应的入口地址，跳转过去就行了，当然不仅仅只写入程序入口地址，能写的东西很多，比如为了给程序分配内存，至少还得需要知道程序的尺寸大小。但在哪里写入程序的入口地址呢？这便是文件头的由来，在程序文件的开头部分记载这类信息，而程序文件中除文件头外其余的部分则是之前的程序体。</p><p><img src="https://s2.loli.net/2022/11/15/kIpEwdRCYXnhrPs.png" alt="image.png"></p><p>因为文件头之中存放的并不是代码，所以程序不再是纯粹的可执行文件，所以需要从头文件中读出程序的入口地址，进而直接跳到程序入口地址所在位置执行即可。程序头可以自定义，只要我们按照自己定义的格式去解析就行。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;加载内核&quot;&gt;&lt;a href=&quot;#加载内核&quot; class=&quot;headerlink&quot; title=&quot;加载内核&quot;&gt;&lt;/a&gt;加载内核&lt;/h2&gt;&lt;h3 id=&quot;start函数&quot;&gt;&lt;a href=&quot;#start函数&quot; class=&quot;headerlink&quot; title=&quot;_st</summary>
+      
+    
+    
+    
+    
+    <category term="操作系统真相还原" scheme="http://example.com/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9C%9F%E7%9B%B8%E8%BF%98%E5%8E%9F/"/>
+    
+  </entry>
   
   <entry>
     <title>保护模式进阶</title>
